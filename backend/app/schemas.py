@@ -36,3 +36,22 @@ class MovieResponse(BaseModel):
     class Config:
         from_attributes = True  # Pydantic v2
         # from_orm = True  # ORM 모델을 Pydantic 모델로 변환 허용(구버전이면 이걸 사용)
+
+class ReviewCreate(BaseModel):
+    """리뷰 작성 요청 스키마"""
+    movie_id: int
+    author: str
+    content: str
+
+class ReviewResponse(BaseModel):
+    """리뷰 응답 스키마"""
+    id: int
+    movie_id: int
+    author: str
+    content: str
+    sentiment_label: Optional[str] = None    # 감성 분석 결과
+    sentiment_score: Optional[float] = None  # 감성 점수
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
