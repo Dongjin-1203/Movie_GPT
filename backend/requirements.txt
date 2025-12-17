@@ -4,3 +4,8 @@ psycopg2-binary
 pydantic
 fastapi
 uvicorn[standard]
+
+transformers
+optimum[onnxruntime]
+onnxruntime
+scipy
