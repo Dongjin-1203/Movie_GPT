@@ -71,3 +71,5 @@ class MovieAPIClient:
         except requests.RequestException as e:
             print(f"Error deleting movie {movie_id}: {e}")
             return False
+        
+client = MovieAPIClient(base_url)
