@@ -31,7 +31,7 @@ def create_movie(movie: MovieCreate, db: Session = Depends(get_db)):
 
     # Pydantic 모델 → SQLAlchemy 모델 변환
     db_movie = Movie(
-        movie.model_dump()
+        **movie.model_dump()
     )
     
     # DB에 추가

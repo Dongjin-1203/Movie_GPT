@@ -76,7 +76,7 @@ class MovieAPIClient:
     def create_review(self, review_data: dict):
         """리뷰 작성"""
         try:
-            response = requests.POST(
+            response = requests.post(
                 f"{self.base_url}/reviews/",
                 json=review_data
             )
@@ -93,7 +93,7 @@ class MovieAPIClient:
     def get_all_reviews(self, limit: int = 10):
         """최근 리뷰 조회"""
         try:
-            response = requests.GET(
+            response = requests.get(
                 f"{self.base_url}/reviews/",
                 params={"limit": limit}
             )
@@ -110,7 +110,7 @@ class MovieAPIClient:
     def get_movie_reviews(self, movie_id: int):
         """특정 영화 리뷰 조회"""
         try:
-            response = requests.GET(
+            response = requests.get(
                 f"{self.base_url}/reviews/movie/{movie_id}"
             )
             
@@ -126,7 +126,7 @@ class MovieAPIClient:
     def delete_review(self, review_id: int):
         """리뷰 삭제"""
         try:
-            response = requests.DELETE(
+            response = requests.delete(
                 f"{self.base_url}/reviews/{review_id}"
             )
             
@@ -142,7 +142,7 @@ class MovieAPIClient:
     def get_movie_rating(self, movie_id: int):
         """영화 평균 평점 조회"""
         try:
-            response = requests.GET(
+            response = requests.get(
                 f"{self.base_url}/reviews/movie/{movie_id}/rating"
             )
             
