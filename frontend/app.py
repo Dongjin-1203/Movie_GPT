@@ -30,3 +30,11 @@ st.info("""
 - 영화를 추가하려면 '영화 추가' 페이지로 이동하세요
 - 등록된 영화를 보려면 '영화 목록' 페이지로 이동하세요
 """)
+
+# 사이드바 안내
+with st.sidebar:
+    st.success("👈 메뉴를 선택하세요!")
+    
+    st.divider()
+    
+    st.caption("Made with ❤️ using Streamlit & FastAPI")
