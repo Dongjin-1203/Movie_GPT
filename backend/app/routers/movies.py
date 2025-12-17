@@ -31,7 +31,7 @@ def create_movie(movie: MovieCreate, db: Session = Depends(get_db)):
 
     # Pydantic 모델 → SQLAlchemy 모델 변환
     db_movie = Movie(
-        **movie.dict()
+        movie.model_dump()
     )
     
     # DB에 추가
@@ -53,7 +53,8 @@ def get_movies(
     db: Session = Depends(get_db)
 ):
     """전체 영화 목록 조회 (페이지네이션 지원)"""
-        # DB 쿼리 (최신순 정렬)
+    
+    # DB 쿼리 (최신순 정렬)
     movies = db.query(Movie)\
                .order_by(Movie.created_at.desc())\
                .offset(skip)\
