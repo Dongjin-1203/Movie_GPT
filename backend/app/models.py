@@ -13,10 +13,10 @@ class Movie(Base):
     __tablename__ = "movies"
 
     # 컬럼 정의
-    id = Column(Integer, primary_key = True, autoincrement = True)
-    title = Column(String(200), nullable = True)
-    release_date = Column(String(50), nullable = True)
-    director = Column(String(100), nullable = True)
-    genre = Column(String(100), nullable = True)
-    poster_url = Column(String(500), nullable = True)
-    created_at = Column(DateTime, default=func.now(), nullable = False )
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(200), nullable=False)
+    release_date = Column(String(50))
+    director = Column(String(100))
+    genre = Column(String(100))
+    poster_url = Column(String(500))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
