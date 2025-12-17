@@ -18,21 +18,21 @@ class MovieCreate(BaseModel):
     # 필수 항목
     title: str
     # 선택 사항들
-    release_date: Optional[str]
-    director: Optional[str]
-    genre: Optional[str]
-    poster_url: Optional[str]
+    release_date: Optional[str] = None
+    director: Optional[str] = None
+    genre: Optional[str] = None
+    poster_url: Optional[str] = None
 
 class MovieResponse(BaseModel):
     """GET /movies/ 응답 시 사용. DB에서 조회한 데이터"""
 
     id: int
     title: str
-    release_date: Optional[str]
-    director: Optional[str]
-    genre: Optional[str]
-    poster_url: Optional[str]
+    release_date: Optional[str] = None
+    director: Optional[str] = None
+    genre: Optional[str] = None
+    poster_url: Optional[str] = None
     created_at: datetime
-
     class Config:
-        from_orm = True  # ORM 모델을 Pydantic 모델로 변환 허용
+        from_attributes = True  # Pydantic v2
+        # from_orm = True  # ORM 모델을 Pydantic 모델로 변환 허용(구버전이면 이걸 사용)
