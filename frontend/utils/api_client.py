@@ -72,4 +72,87 @@ class MovieAPIClient:
             print(f"Error deleting movie {movie_id}: {e}")
             return False
         
+    # ======= 리뷰 관련 메서드 =======
+    def create_review(self, review_data: dict):
+        """리뷰 작성"""
+        try:
+            response = requests.POST(
+                f"{self.base_url}/reviews/",
+                json=review_data
+            )
+            
+            if response.status_code == 201:
+                return response.json()
+            else:
+                return None
+        
+        except Exception as e:
+            print(f"Error creating review: {e}")
+            return None
+        
+    def get_all_reviews(self, limit: int = 10):
+        """최근 리뷰 조회"""
+        try:
+            response = requests.GET(
+                f"{self.base_url}/reviews/",
+                params={"limit": limit}
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                return []
+        
+        except Exception as e:
+            print(f"Error fetching reviews: {e}")
+            return []
+    
+    def get_movie_reviews(self, movie_id: int):
+        """특정 영화 리뷰 조회"""
+        try:
+            response = requests.GET(
+                f"{self.base_url}/reviews/movie/{movie_id}"
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                return []
+        
+        except Exception as e:
+            print(f"Error fetching movie reviews: {e}")
+            return []
+        
+    def delete_review(self, review_id: int):
+        """리뷰 삭제"""
+        try:
+            response = requests.DELETE(
+                f"{self.base_url}/reviews/{review_id}"
+            )
+            
+            if response.status_code == 200:
+                return True
+            else:
+                return False
+        
+        except Exception as e:
+            print(f"Error deleting review: {e}")
+            return False
+
+    def get_movie_rating(self, movie_id: int):
+        """영화 평균 평점 조회"""
+        try:
+            response = requests.GET(
+                f"{self.base_url}/reviews/movie/{movie_id}/rating"
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                return None
+        
+        except Exception as e:
+            print(f"Error fetching rating: {e}")
+            return None
+
 client = MovieAPIClient(base_url)

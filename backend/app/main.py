@@ -14,7 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import engine, Base
 from app import models
-from app.routers import movies
+from app.routers import movies, reviews
 
 # ===== 데이터베이스 테이블 생성 =====
 Base.metadata.create_all(bind=engine)
@@ -39,6 +39,7 @@ app.add_middleware(
 
 # ===== 라우터 등록 =====
 app.include_router(movies.router)
+app.include_router(reviews.router)
 
 # ===== 루트 엔드포인트 =====
 @app.get("/")
