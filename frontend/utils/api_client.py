@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # FastAPI 백엔드의 기본 URL
-base_url = os.getenv("BASE_URL")
+BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
 
 class MovieAPIClient:
     """FastAPI 백엔드와 통신하는 클래스"""
@@ -155,4 +155,4 @@ class MovieAPIClient:
             print(f"Error fetching rating: {e}")
             return None
 
-client = MovieAPIClient(base_url)
+client = MovieAPIClient(BASE_URL)
