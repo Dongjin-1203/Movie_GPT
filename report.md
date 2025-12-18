@@ -710,6 +710,7 @@ CI/CD (향후):
 본 프로젝트는 **로컬 개발 환경 (Docker Compose)**과 **GCP 프로덕션 환경 (Cloud Run)** 두 가지 방식으로 실행할 수 있습니다.
 
 [실행 방법 설명 문서로 이동](https://github.com/Dongjin-1203/Movie_GPT/blob/main/%EC%8B%A4%ED%96%89%20%EC%84%A4%EB%AA%85%EC%84%9C.md)
+
 ---
 
 ## 5. 서비스 동작 화면
