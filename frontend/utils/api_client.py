@@ -10,9 +10,6 @@ FastAPI 백엔드와 통신하는 모든 함수 모음
 
 import requests
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 # FastAPI 백엔드의 기본 URL
 BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
