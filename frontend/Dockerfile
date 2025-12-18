@@ -1,22 +1,28 @@
-FROM python:3.11-slim
+﻿FROM python:3.11-slim
 
-# 작업 디렉토리 설정
 WORKDIR /app
 
-# Python 의존성 파일 복사
+# Python 의존성 설치
 COPY requirements.txt .
-
-# Python 패키지 설치
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 애플리케이션 코드 복사
 COPY . .
 
-# ⭐ 로컬 .env 파일 삭제 (중요!)
+# 로컬 .env 파일 삭제
 RUN rm -f .env
 
-# 포트 노출
-EXPOSE 8501
+# PORT 환경 변수 (기본값 8501, Cloud Run은 8080 주입)
+ENV PORT=8501
+
+EXPOSE ${PORT}
 
 # Streamlit 실행
-CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# 로컬: PORT=8501 (기본값)
+# Cloud Run: PORT=8080 (자동 주입)
+CMD streamlit run app.py \
+    --server.port=$PORT \
+    --server.address=0.0.0.0 \
+    --server.headless=true \
+    --server.enableCORS=false \
+    --server.enableXsrfProtection=false
