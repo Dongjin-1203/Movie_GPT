@@ -1,13 +1,13 @@
 # Movie GPT - AI 기반 영화 리뷰 감성 분석 시스템
 
 **프로젝트명**: Movie GPT  
-**개발자**: 주인  
-**개발 기간**: 2024.XX.XX ~ 2024.12.18  
+**개발자**: 지동진  
+**개발 기간**: 2025.12.17 ~ 2024.12.18  
 **배포 환경**: GCP Cloud Run  
 **프로젝트 링크**: 
-- Frontend: [배포 URL]
-- Backend API: [배포 URL]/docs
-- GitHub: [Repository URL]
+- Frontend: https://movie-gpt-frontend-58582238748.asia-northeast3.run.app
+- Backend API: https://movie-gpt-backend-58582238748.asia-northeast3.run.app/docs
+- GitHub: https://github.com/Dongjin-1203/Movie_GPT
 
 ---
 
@@ -157,7 +157,7 @@
 
 5. **양자화 적용 코드**
 
-\`\`\`python
+```python
 # scripts/convert_model.py
 from optimum.onnxruntime import ORTModelForSequenceClassification, ORTQuantizer
 from optimum.onnxruntime.configuration import AutoQuantizationConfig
@@ -180,7 +180,7 @@ quantizer.quantize(
     save_dir=output_dir,
     quantization_config=dqconfig
 )
-\`\`\`
+```
 
 6. **결과 및 효과**
 
@@ -203,7 +203,7 @@ quantizer.quantize(
 
 ### 2.1 전체 시스템 아키텍처
 
-\`\`\`
+```
 ┌──────────────────────────────────────────────────────────────┐
 │                         사용자                                │
 └────────────────────────┬─────────────────────────────────────┘
@@ -242,11 +242,11 @@ quantizer.quantize(
     │  - movies table    │    │  Size: ~85MB         │
     │  - reviews table   │    │  Format: INT8        │
     └────────────────────┘    └──────────────────────┘
-\`\`\`
+```
 
 ### 2.2 프론트엔드 구조
 
-\`\`\`
+```
 frontend/
 ├── app.py                    # 메인 페이지 (홈)
 ├── pages/
@@ -263,11 +263,11 @@ frontend/
 - RESTful API 통신
 - 실시간 UI 업데이트
 - 반응형 레이아웃
-\`\`\`
+```
 
 ### 2.3 백엔드 구조
 
-\`\`\`
+```
 backend/
 ├── app/
 │   ├── main.py              # FastAPI 앱 진입점
@@ -292,11 +292,11 @@ backend/
 - ORM을 통한 DB 추상화
 - 의존성 주입 (Dependency Injection)
 - 자동 API 문서화 (Swagger/ReDoc)
-\`\`\`
+```
 
 ### 2.4 모델 서빙 아키텍처
 
-\`\`\`
+```
 ┌─────────────────────────────────────────────────────────┐
 │              감성 분석 추론 파이프라인                   │
 └─────────────────────────────────────────────────────────┘
@@ -332,13 +332,13 @@ backend/
 - Singleton 패턴 (모델 1회 로드)
 - Connection Pooling
 - 에러 핸들링 (fallback to neutral)
-\`\`\`
+```
 
 ### 2.5 데이터베이스 ERD (Entity-Relationship Diagram)
 
 **[여기에 ERD 다이어그램 이미지 삽입]**
 
-\`\`\`
+```
 ┌─────────────────────────────────┐
 │           movies                │
 ├─────────────────────────────────┤
@@ -369,7 +369,7 @@ backend/
 관계:
 - movies : reviews = 1 : N (One-to-Many)
 - CASCADE 삭제: 영화 삭제 시 관련 리뷰 자동 삭제
-\`\`\`
+```
 
 **테이블 설명:**
 
@@ -385,7 +385,7 @@ backend/
 
 ### 2.6 배포 아키텍처 (GCP)
 
-\`\`\`
+```
 ┌────────────────────────────────────────────────────────────┐
 │                      Internet                              │
 └──────────────────────┬─────────────────────────────────────┘
@@ -434,7 +434,7 @@ CI/CD (향후):
 │ - GitHub Push → Auto Build         │
 │ - Auto Deploy to Cloud Run         │
 └────────────────────────────────────┘
-\`\`\`
+```
 
 **배포 특징:**
 - ✅ 서버리스 아키텍처 (Auto Scaling)
@@ -451,7 +451,7 @@ CI/CD (향후):
 
 **[여기에 FastAPI Swagger UI 전체 화면 캡쳐 이미지 삽입]**
 
-접속 URL: \`[Backend URL]/docs\`
+접속 URL: https://movie-gpt-backend-58582238748.asia-northeast3.run.app/docs
 
 ### 3.2 영화 API
 
@@ -466,7 +466,7 @@ CI/CD (향후):
 - \`limit\` (int, optional): 조회할 개수 (default: 100)
 
 **Response**: \`200 OK\`
-\`\`\`json
+```json
 [
   {
     "id": 1,
@@ -487,7 +487,7 @@ CI/CD (향후):
     "created_at": "2024-12-18T09:00:00Z"
   }
 ]
-\`\`\`
+```
 
 #### 3.2.2 특정 영화 조회
 
@@ -497,7 +497,7 @@ CI/CD (향후):
 - \`movie_id\` (int, required): 영화 ID
 
 **Response**: \`200 OK\`
-\`\`\`json
+```json
 {
   "id": 1,
   "title": "기생충",
@@ -507,21 +507,21 @@ CI/CD (향후):
   "poster_url": "https://example.com/poster.jpg",
   "created_at": "2024-12-18T10:00:00Z"
 }
-\`\`\`
+```
 
 **Error Response**: \`404 Not Found\`
-\`\`\`json
+```json
 {
   "detail": "Movie not found"
 }
-\`\`\`
+```
 
 #### 3.2.3 영화 추가
 
 **Endpoint**: \`POST /movies/\`
 
 **Request Body**:
-\`\`\`json
+```json
 {
   "title": "기생충",
   "release_date": "2019-05-30",
@@ -529,7 +529,7 @@ CI/CD (향후):
   "genre": "드라마",
   "poster_url": "https://example.com/poster.jpg"
 }
-\`\`\`
+```
 
 **Required Fields**:
 - \`title\` (string): 영화 제목
@@ -541,7 +541,7 @@ CI/CD (향후):
 - \`poster_url\` (string): 포스터 이미지 URL
 
 **Response**: \`201 Created\`
-\`\`\`json
+```json
 {
   "id": 1,
   "title": "기생충",
@@ -551,7 +551,7 @@ CI/CD (향후):
   "poster_url": "https://example.com/poster.jpg",
   "created_at": "2024-12-18T10:00:00Z"
 }
-\`\`\`
+```
 
 #### 3.2.4 영화 삭제
 
@@ -561,11 +561,11 @@ CI/CD (향후):
 - \`movie_id\` (int, required): 영화 ID
 
 **Response**: \`200 OK\`
-\`\`\`json
+```json
 {
   "message": "Movie deleted successfully"
 }
-\`\`\`
+```
 
 **Note**: 영화 삭제 시 관련 리뷰도 자동으로 삭제됩니다 (CASCADE).
 
@@ -578,13 +578,13 @@ CI/CD (향후):
 **설명**: 리뷰를 작성하면 자동으로 AI 감성 분석이 수행됩니다.
 
 **Request Body**:
-\`\`\`json
+```json
 {
   "movie_id": 1,
   "author": "홍길동",
   "content": "정말 재미있는 영화였습니다! 봉준호 감독님의 연출이 훌륭했어요."
 }
-\`\`\`
+```
 
 **Required Fields**:
 - \`movie_id\` (int): 영화 ID
@@ -592,7 +592,7 @@ CI/CD (향후):
 - \`content\` (string): 리뷰 내용 (최소 5자)
 
 **Response**: \`201 Created\`
-\`\`\`json
+```json
 {
   "id": 1,
   "movie_id": 1,
@@ -602,18 +602,18 @@ CI/CD (향후):
   "sentiment_score": 0.9534,
   "created_at": "2024-12-18T10:30:00Z"
 }
-\`\`\`
+```
 
 **AI 분석 결과**:
 - \`sentiment_label\`: "positive", "negative", "neutral"
 - \`sentiment_score\`: 0.0 ~ 1.0 (신뢰도)
 
 **Error Response**: \`404 Not Found\` (영화가 없는 경우)
-\`\`\`json
+```json
 {
   "detail": "Movie not found"
 }
-\`\`\`
+```
 
 #### 3.3.2 전체 리뷰 조회
 
@@ -624,7 +624,7 @@ CI/CD (향후):
 - \`skip\` (int, optional): 건너뛸 개수 (default: 0)
 
 **Response**: \`200 OK\`
-\`\`\`json
+```json
 [
   {
     "id": 1,
@@ -645,7 +645,7 @@ CI/CD (향후):
     "created_at": "2024-12-18T10:25:00Z"
   }
 ]
-\`\`\`
+```
 
 #### 3.3.3 특정 영화의 리뷰 조회
 
@@ -655,7 +655,7 @@ CI/CD (향후):
 - \`movie_id\` (int, required): 영화 ID
 
 **Response**: \`200 OK\`
-\`\`\`json
+```json
 [
   {
     "id": 1,
@@ -667,7 +667,7 @@ CI/CD (향후):
     "created_at": "2024-12-18T10:30:00Z"
   }
 ]
-\`\`\`
+```
 
 #### 3.3.4 리뷰 삭제
 
@@ -677,11 +677,11 @@ CI/CD (향후):
 - \`review_id\` (int, required): 리뷰 ID
 
 **Response**: \`200 OK\`
-\`\`\`json
+```json
 {
   "message": "Review deleted successfully"
 }
-\`\`\`
+```
 
 #### 3.3.5 영화 평균 평점 조회
 
@@ -691,13 +691,13 @@ CI/CD (향후):
 - \`movie_id\` (int, required): 영화 ID
 
 **Response**: \`200 OK\`
-\`\`\`json
+```json
 {
   "movie_id": 1,
   "average_score": 0.82,
   "review_count": 15
 }
-\`\`\`
+```
 
 **계산 방식**:
 - 해당 영화의 모든 리뷰 \`sentiment_score\` 평균
@@ -722,17 +722,17 @@ CI/CD (향후):
 | **Visual Studio Code** | 최신 버전 (선택) | https://code.visualstudio.com/ |
 
 **Docker 설치 확인:**
-\`\`\`bash
+```bash
 docker --version
 # 출력 예시: Docker version 24.0.7
 
 docker-compose --version
 # 출력 예시: Docker Compose version v2.23.3
-\`\`\`
+```
 
 #### 4.1.2 프로젝트 클론
 
-\`\`\`bash
+```bash
 # GitHub에서 프로젝트 클론
 git clone https://github.com/[username]/Movie_GPT.git
 
@@ -742,14 +742,14 @@ cd Movie_GPT
 # 파일 구조 확인
 ls -la
 # backend/  frontend/  docker-compose.yml  README.md
-\`\`\`
+```
 
 #### 4.1.3 환경 변수 설정 (선택 사항)
 
 Docker Compose 환경에서는 환경 변수가 \`docker-compose.yml\`에 이미 설정되어 있습니다. 필요시 비밀번호 등을 수정할 수 있습니다.
 
 **docker-compose.yml 주요 환경 변수:**
-\`\`\`yaml
+```yaml
 services:
   db:
     environment:
@@ -765,31 +765,31 @@ services:
   frontend:
     environment:
       BASE_URL: http://backend:8000
-\`\`\`
+```
 
 **비밀번호 변경 예시:**
-\`\`\`yaml
+```yaml
 # 1. db 서비스의 POSTGRES_PASSWORD 변경
 POSTGRES_PASSWORD: "your_secure_password"
 
 # 2. backend 서비스의 DATABASE_URL도 함께 변경
 DATABASE_URL: postgresql://postgres:your_secure_password@db:5432/Movie_DB
-\`\`\`
+```
 
 #### 4.1.4 서비스 실행
 
 **전체 스택 실행:**
 
-\`\`\`bash
+```bash
 # 모든 서비스를 빌드하고 실행 (최초 실행 시 5-10분 소요)
 docker-compose up --build
 
 # 또는 백그라운드 실행 (권장)
 docker-compose up -d --build
-\`\`\`
+```
 
 **실행 로그 확인:**
-\`\`\`bash
+```bash
 # 전체 로그 확인
 docker-compose logs -f
 
@@ -797,15 +797,15 @@ docker-compose logs -f
 docker-compose logs -f backend
 docker-compose logs -f frontend
 docker-compose logs -f db
-\`\`\`
+```
 
 **성공적으로 실행되면 다음과 같은 로그가 출력됩니다:**
-\`\`\`
+```
 ✅ db         | database system is ready to accept connections
 ✅ backend    | Uvicorn running on http://0.0.0.0:8000
 ✅ frontend   | You can now view your Streamlit app in your browser.
               | Local URL: http://0.0.0.0:8501
-\`\`\`
+```
 
 #### 4.1.5 서비스 접속
 
@@ -819,7 +819,7 @@ docker-compose logs -f db
 | **Backend Health** | http://localhost:8000/ | 헬스체크 엔드포인트 |
 
 **접속 테스트:**
-\`\`\`bash
+```bash
 # Backend 헬스체크
 curl http://localhost:8000/
 # 출력: {"message":"Movie GPT API is running"}
@@ -827,14 +827,14 @@ curl http://localhost:8000/
 # 영화 목록 조회 (빈 목록)
 curl http://localhost:8000/movies/
 # 출력: []
-\`\`\`
+```
 
 #### 4.1.6 데이터베이스 접속 (선택 사항)
 
 PostgreSQL 데이터베이스에 직접 접속하려면:
 
 **방법 1: Docker 컨테이너 내부에서 접속**
-\`\`\`bash
+```bash
 # PostgreSQL 컨테이너 내부 접속
 docker exec -it movie_gpt_db psql -U postgres -d Movie_DB
 
@@ -842,7 +842,7 @@ docker exec -it movie_gpt_db psql -U postgres -d Movie_DB
 Movie_DB=# SELECT * FROM movies;
 Movie_DB=# SELECT * FROM reviews;
 Movie_DB=# \q  # 종료
-\`\`\`
+```
 
 **방법 2: 외부 클라이언트에서 접속**
 - **Host**: localhost
@@ -856,26 +856,26 @@ Movie_DB=# \q  # 종료
 #### 4.1.7 서비스 종료
 
 **서비스 중지 (컨테이너 유지):**
-\`\`\`bash
+```bash
 docker-compose stop
-\`\`\`
+```
 
 **서비스 중지 및 컨테이너 삭제:**
-\`\`\`bash
+```bash
 docker-compose down
-\`\`\`
+```
 
 **데이터베이스 볼륨까지 완전 삭제:**
-\`\`\`bash
+```bash
 # ⚠️ 주의: 모든 데이터가 삭제됩니다!
 docker-compose down -v
-\`\`\`
+```
 
 #### 4.1.8 서비스 재시작
 
 코드 변경 후 재시작:
 
-\`\`\`bash
+```bash
 # 변경된 서비스만 재빌드 (예: backend)
 docker-compose up -d --build backend
 
@@ -885,12 +885,12 @@ docker-compose up -d --build
 # 캐시 없이 완전 재빌드 (문제 발생 시)
 docker-compose build --no-cache
 docker-compose up -d
-\`\`\`
+```
 
 #### 4.1.9 로컬 실행 문제 해결
 
 **문제 1: 포트가 이미 사용 중**
-\`\`\`bash
+```bash
 # 오류: Bind for 0.0.0.0:8000 failed: port is already allocated
 
 # 해결: 해당 포트를 사용 중인 프로세스 종료
@@ -900,10 +900,10 @@ taskkill /PID [PID번호] /F
 
 # Linux/Mac
 lsof -ti:8000 | xargs kill -9
-\`\`\`
+```
 
 **문제 2: 데이터베이스 연결 실패**
-\`\`\`bash
+```bash
 # 오류: could not connect to server
 
 # 해결: 데이터베이스 컨테이너 로그 확인
@@ -912,10 +912,10 @@ docker-compose logs db
 # 비밀번호 불일치 시 볼륨 초기화
 docker-compose down -v
 docker-compose up -d
-\`\`\`
+```
 
 **문제 3: 모델 로딩 실패**
-\`\`\`bash
+```bash
 # 오류: FileNotFoundError: model_quantized.onnx
 
 # 해결: 모델 수동 생성
@@ -925,7 +925,7 @@ python scripts/convert_model.py
 # 또는 컨테이너 재빌드
 docker-compose build --no-cache backend
 docker-compose up -d backend
-\`\`\`
+```
 
 #### 4.1.10 로컬 환경 요약
 
@@ -960,15 +960,15 @@ GCP 배포를 위해 다음이 필요합니다:
 | **Git** | 코드 버전 관리 |
 
 **gcloud CLI 설치 확인:**
-\`\`\`bash
+```bash
 gcloud --version
 # 출력 예시: Google Cloud SDK 458.0.1
-\`\`\`
+```
 
 #### 4.2.2 GCP 프로젝트 생성 및 인증
 
 **1단계: gcloud 초기화**
-\`\`\`bash
+```bash
 # gcloud 초기화 (브라우저에서 로그인)
 gcloud init
 
@@ -978,20 +978,20 @@ gcloud init
 # - Create a new project: Y
 # - Project ID: movie-gpt-project-[난수]  # 유니크한 ID 입력
 # - Default region: 29 (asia-northeast3 - 서울)
-\`\`\`
+```
 
 **2단계: 프로젝트 설정 확인**
-\`\`\`bash
+```bash
 # 현재 프로젝트 확인
 gcloud config get-value project
 
 # 프로젝트 ID 저장
 export PROJECT_ID=\$(gcloud config get-value project)
 echo \$PROJECT_ID
-\`\`\`
+```
 
 **3단계: 필요한 API 활성화**
-\`\`\`bash
+```bash
 # Cloud Run, Cloud SQL, Artifact Registry 활성화
 gcloud services enable run.googleapis.com
 gcloud services enable sqladmin.googleapis.com
@@ -1000,12 +1000,12 @@ gcloud services enable artifactregistry.googleapis.com
 
 # 활성화 확인
 gcloud services list --enabled
-\`\`\`
+```
 
 #### 4.2.3 Cloud SQL 데이터베이스 생성
 
 **1단계: PostgreSQL 인스턴스 생성**
-\`\`\`bash
+```bash
 # PostgreSQL 15 인스턴스 생성 (5-10분 소요)
 gcloud sql instances create movie-gpt-db \
     --database-version=POSTGRES_15 \
@@ -1014,32 +1014,32 @@ gcloud sql instances create movie-gpt-db \
     --root-password="YOUR_SECURE_PASSWORD"
 
 # 비밀번호는 안전하게 보관하세요!
-\`\`\`
+```
 
 **2단계: 데이터베이스 생성**
-\`\`\`bash
+```bash
 # Movie_DB 데이터베이스 생성
 gcloud sql databases create Movie_DB --instance=movie-gpt-db
 
 # 생성 확인
 gcloud sql databases list --instance=movie-gpt-db
-\`\`\`
+```
 
 **3단계: 연결 정보 확인**
-\`\`\`bash
+```bash
 # CONNECTION_NAME 확인 (⭐ 중요!)
 gcloud sql instances describe movie-gpt-db \
     --format="value(connectionName)"
 
 # 출력 예시: movie-gpt-project:asia-northeast3:movie-gpt-db
 # 이 값을 메모하세요!
-\`\`\`
+```
 
 #### 4.2.4 Artifact Registry 설정
 
 **Docker 이미지를 저장할 저장소 생성:**
 
-\`\`\`bash
+```bash
 # Docker 저장소 생성
 gcloud artifacts repositories create movie-gpt-repo \
     --repository-format=docker \
@@ -1051,12 +1051,12 @@ gcloud auth configure-docker asia-northeast3-docker.pkg.dev
 
 # 저장소 확인
 gcloud artifacts repositories list
-\`\`\`
+```
 
 #### 4.2.5 Backend 배포
 
 **1단계: Docker 이미지 빌드 및 업로드**
-\`\`\`bash
+```bash
 # 프로젝트 루트 디렉토리에서
 cd Movie_GPT
 
@@ -1068,10 +1068,10 @@ gcloud builds submit ./backend \
 # 빌드 성공 확인
 gcloud artifacts docker images list \
     asia-northeast3-docker.pkg.dev/\$PROJECT_ID/movie-gpt-repo
-\`\`\`
+```
 
 **2단계: Cloud Run에 배포**
-\`\`\`bash
+```bash
 # 환경 변수 설정
 CONNECTION_NAME=\$(gcloud sql instances describe movie-gpt-db \
     --format="value(connectionName)")
@@ -1094,10 +1094,10 @@ gcloud run deploy movie-gpt-backend \
 
 # 배포 성공 확인
 gcloud run services describe movie-gpt-backend --region asia-northeast3
-\`\`\`
+```
 
 **3단계: Backend URL 확인**
-\`\`\`bash
+```bash
 # Backend URL 가져오기
 BACKEND_URL=\$(gcloud run services describe movie-gpt-backend \
     --region asia-northeast3 \
@@ -1109,20 +1109,20 @@ echo "API Docs: \$BACKEND_URL/docs"
 # 브라우저에서 확인
 # Linux/Mac: open \$BACKEND_URL/docs
 # Windows: start \$BACKEND_URL/docs
-\`\`\`
+```
 
 #### 4.2.6 Frontend 배포
 
 **1단계: Frontend 이미지 빌드 및 업로드**
-\`\`\`bash
+```bash
 # Frontend 이미지 빌드 (3-5분 소요)
 gcloud builds submit ./frontend \
     --tag asia-northeast3-docker.pkg.dev/\$PROJECT_ID/movie-gpt-repo/frontend:latest \
     --timeout=15m
-\`\`\`
+```
 
 **2단계: Cloud Run에 배포**
-\`\`\`bash
+```bash
 # Frontend 배포 (Backend URL 환경 변수로 전달)
 gcloud run deploy movie-gpt-frontend \
     --image asia-northeast3-docker.pkg.dev/\$PROJECT_ID/movie-gpt-repo/frontend:latest \
@@ -1138,10 +1138,10 @@ gcloud run deploy movie-gpt-frontend \
 
 # 배포 성공 확인
 gcloud run services describe movie-gpt-frontend --region asia-northeast3
-\`\`\`
+```
 
 **3단계: Frontend URL 확인**
-\`\`\`bash
+```bash
 # Frontend URL 가져오기
 FRONTEND_URL=\$(gcloud run services describe movie-gpt-frontend \
     --region asia-northeast3 \
@@ -1157,12 +1157,12 @@ echo "=========================================="
 # 브라우저에서 확인
 # Linux/Mac: open \$FRONTEND_URL
 # Windows: start \$FRONTEND_URL
-\`\`\`
+```
 
 #### 4.2.7 배포 확인 및 테스트
 
 **1단계: 헬스체크**
-\`\`\`bash
+```bash
 # Backend API 테스트
 curl \$BACKEND_URL/
 # 출력: {"message":"Movie GPT API is running"}
@@ -1170,10 +1170,10 @@ curl \$BACKEND_URL/
 # 영화 목록 조회
 curl \$BACKEND_URL/movies/
 # 출력: []
-\`\`\`
+```
 
 **2단계: 로그 확인**
-\`\`\`bash
+```bash
 # Backend 로그
 gcloud run services logs read movie-gpt-backend \
     --region asia-northeast3 \
@@ -1187,7 +1187,7 @@ gcloud run services logs read movie-gpt-frontend \
 # 실시간 로그 (Ctrl+C로 종료)
 gcloud run services logs tail movie-gpt-backend \
     --region asia-northeast3
-\`\`\`
+```
 
 **3단계: 브라우저 테스트**
 1. Frontend URL 접속
@@ -1200,7 +1200,7 @@ gcloud run services logs tail movie-gpt-backend \
 코드 변경 후 재배포 방법:
 
 **Backend 업데이트:**
-\`\`\`bash
+```bash
 # 1. 코드 변경 및 커밋
 git add backend/
 git commit -m "Update backend code"
@@ -1217,10 +1217,10 @@ gcloud run deploy movie-gpt-backend \
 
 # 4. 배포 확인
 gcloud run services describe movie-gpt-backend --region asia-northeast3
-\`\`\`
+```
 
 **Frontend 업데이트:**
-\`\`\`bash
+```bash
 # 1. 코드 변경 및 커밋
 git add frontend/
 git commit -m "Update frontend code"
@@ -1234,17 +1234,17 @@ gcloud builds submit ./frontend \
 gcloud run deploy movie-gpt-frontend \
     --image asia-northeast3-docker.pkg.dev/\$PROJECT_ID/movie-gpt-repo/frontend:latest \
     --region asia-northeast3
-\`\`\`
+```
 
 #### 4.2.9 모니터링 및 관리
 
 **Cloud Console 접속:**
-\`\`\`bash
+```bash
 # GCP Console에서 확인
 echo "Cloud Run: https://console.cloud.google.com/run?project=\$PROJECT_ID"
 echo "Cloud SQL: https://console.cloud.google.com/sql?project=\$PROJECT_ID"
 echo "Logs: https://console.cloud.google.com/logs?project=\$PROJECT_ID"
-\`\`\`
+```
 
 **주요 모니터링 항목:**
 - **요청 수**: 시간당 API 호출 횟수
@@ -1257,7 +1257,7 @@ echo "Logs: https://console.cloud.google.com/logs?project=\$PROJECT_ID"
 
 **개발 완료 후 비용 절감을 위한 리소스 삭제:**
 
-\`\`\`bash
+```bash
 # ⚠️ 주의: 모든 데이터가 삭제됩니다!
 
 # Cloud Run 서비스 삭제
@@ -1273,16 +1273,16 @@ gcloud artifacts repositories delete movie-gpt-repo \
 
 # 확인
 echo "✅ 모든 리소스 삭제 완료"
-\`\`\`
+```
 
 **일시 중지 (Cloud SQL만):**
-\`\`\`bash
+```bash
 # Cloud SQL 중지 (요금 절감)
 gcloud sql instances patch movie-gpt-db --activation-policy NEVER
 
 # Cloud SQL 재시작
 gcloud sql instances patch movie-gpt-db --activation-policy ALWAYS
-\`\`\`
+```
 
 #### 4.2.11 예상 비용
 
@@ -1304,17 +1304,17 @@ gcloud sql instances patch movie-gpt-db --activation-policy ALWAYS
 #### 4.2.12 GCP 배포 문제 해결
 
 **문제 1: 빌드 타임아웃**
-\`\`\`bash
+```bash
 # 오류: Build timeout
 
 # 해결: 타임아웃 시간 증가
 gcloud builds submit ./backend \
     --tag ... \
     --timeout=30m
-\`\`\`
+```
 
 **문제 2: Cloud SQL 연결 실패**
-\`\`\`bash
+```bash
 # 오류: could not connect to server
 
 # 해결: CONNECTION_NAME 확인
@@ -1323,10 +1323,10 @@ gcloud sql instances describe movie-gpt-db \
 
 # DATABASE_URL 형식 확인
 # 올바른 형식: postgresql://user:pass@/db?host=/cloudsql/CONNECTION_NAME
-\`\`\`
+```
 
 **문제 3: 환경 변수 미적용**
-\`\`\`bash
+```bash
 # 환경 변수 확인
 gcloud run services describe movie-gpt-backend \
     --region asia-northeast3 \
@@ -1336,7 +1336,7 @@ gcloud run services describe movie-gpt-backend \
 gcloud run services update movie-gpt-backend \
     --region asia-northeast3 \
     --set-env-vars KEY=VALUE
-\`\`\`
+```
 
 #### 4.2.13 GCP 환경 요약
 
@@ -1390,26 +1390,6 @@ gcloud run services update movie-gpt-backend \
 
 **[여기에 영화 추가 화면 캡쳐 이미지 삽입]**
 
-**등록된 영화 (3개 이상)**:
-
-#### 영화 1
-- **제목**: 
-- **개봉일**: 
-- **감독**: 
-- **장르**: 
-
-#### 영화 2
-- **제목**: 
-- **개봉일**: 
-- **감독**: 
-- **장르**: 
-
-#### 영화 3
-- **제목**: 
-- **개봉일**: 
-- **감독**: 
-- **장르**: 
-
 ---
 
 ### 5.3 영화 목록 화면
@@ -1427,44 +1407,6 @@ gcloud run services update movie-gpt-backend \
 ### 5.4 리뷰 작성 화면
 
 **[여기에 리뷰 작성 화면 캡쳐 이미지 삽입]**
-
-**각 영화당 리뷰 10개 이상 등록**:
-
-#### 영화 1 리뷰 목록
-1. **작성자**: / **내용**: / **감성**: / **점수**: 
-2. **작성자**: / **내용**: / **감성**: / **점수**: 
-3. **작성자**: / **내용**: / **감성**: / **점수**: 
-4. **작성자**: / **내용**: / **감성**: / **점수**: 
-5. **작성자**: / **내용**: / **감성**: / **점수**: 
-6. **작성자**: / **내용**: / **감성**: / **점수**: 
-7. **작성자**: / **내용**: / **감성**: / **점수**: 
-8. **작성자**: / **내용**: / **감성**: / **점수**: 
-9. **작성자**: / **내용**: / **감성**: / **점수**: 
-10. **작성자**: / **내용**: / **감성**: / **점수**: 
-
-#### 영화 2 리뷰 목록
-1. **작성자**: / **내용**: / **감성**: / **점수**: 
-2. **작성자**: / **내용**: / **감성**: / **점수**: 
-3. **작성자**: / **내용**: / **감성**: / **점수**: 
-4. **작성자**: / **내용**: / **감성**: / **점수**: 
-5. **작성자**: / **내용**: / **감성**: / **점수**: 
-6. **작성자**: / **내용**: / **감성**: / **점수**: 
-7. **작성자**: / **내용**: / **감성**: / **점수**: 
-8. **작성자**: / **내용**: / **감성**: / **점수**: 
-9. **작성자**: / **내용**: / **감성**: / **점수**: 
-10. **작성자**: / **내용**: / **감성**: / **점수**: 
-
-#### 영화 3 리뷰 목록
-1. **작성자**: / **내용**: / **감성**: / **점수**: 
-2. **작성자**: / **내용**: / **감성**: / **점수**: 
-3. **작성자**: / **내용**: / **감성**: / **점수**: 
-4. **작성자**: / **내용**: / **감성**: / **점수**: 
-5. **작성자**: / **내용**: / **감성**: / **점수**: 
-6. **작성자**: / **내용**: / **감성**: / **점수**: 
-7. **작성자**: / **내용**: / **감성**: / **점수**: 
-8. **작성자**: / **내용**: / **감성**: / **점수**: 
-9. **작성자**: / **내용**: / **감성**: / **점수**: 
-10. **작성자**: / **내용**: / **감성**: / **점수**: 
 
 ---
 
@@ -1503,9 +1445,9 @@ gcloud run services update movie-gpt-backend \
 #### 문제 상황
 로컬 개발 환경에서는 정상 작동하던 애플리케이션이 Docker 환경에서 PostgreSQL 연결 실패:
 
-\`\`\`
+```
 FATAL: password authentication failed for user "postgres"
-\`\`\`
+```
 
 #### 원인 분석
 
@@ -1515,11 +1457,11 @@ FATAL: password authentication failed for user "postgres"
    - 로컬 \`.env\`에 저장된 이전 비밀번호가 사용됨
 
 2. **환경 변수 우선순위**
-   \`\`\`
+   ```
    1순위: 컨테이너 내부 .env 파일 (load_dotenv)
    2순위: docker-compose.yml의 environment
    3순위: Dockerfile의 ENV
-   \`\`\`
+   ```
 
 3. **Dockerfile의 COPY 명령어**
    - \`COPY . .\`가 \`.env\` 파일도 함께 복사
@@ -1528,7 +1470,7 @@ FATAL: password authentication failed for user "postgres"
 #### 해결 방법
 
 **1단계: database.py 수정**
-\`\`\`python
+```python
 # 변경 전 (문제 코드)
 from dotenv import load_dotenv
 load_dotenv()
@@ -1537,29 +1479,29 @@ db_url = os.getenv("DATABASE_URL")
 # 변경 후 (해결 코드)
 import os
 db_url = os.getenv("DATABASE_URL")  # 환경 변수 직접 사용
-\`\`\`
+```
 
 **2단계: .dockerignore 추가**
-\`\`\`
+```
 # .dockerignore
 .env
 .env.*
 !.env.example
-\`\`\`
+```
 
 **3단계: Dockerfile에 안전장치 추가**
-\`\`\`dockerfile
+```dockerfile
 # Dockerfile
 COPY . .
 RUN rm -f .env  # 혹시 복사된 .env 파일 강제 삭제
-\`\`\`
+```
 
 **4단계: docker-compose.yml 환경 변수 명시**
-\`\`\`yaml
+```yaml
 backend:
   environment:
     DATABASE_URL: postgresql://postgres:0331@db:5432/Movie_DB
-\`\`\`
+```
 
 #### 학습 포인트
 - Docker 환경에서는 \`.env\` 파일 대신 환경 변수를 직접 주입
@@ -1573,9 +1515,9 @@ backend:
 #### 문제 상황
 비밀번호를 변경한 후에도 계속 이전 비밀번호로 인증 실패:
 
-\`\`\`
+```
 FATAL: password authentication failed for user "postgres"
-\`\`\`
+```
 
 #### 원인 분석
 
@@ -1590,59 +1532,59 @@ FATAL: password authentication failed for user "postgres"
    - 기존 사용자 비밀번호 유지
 
 3. **볼륨 확인**
-   \`\`\`bash
+   ```bash
    docker volume ls
    # 출력: movie_gpt_postgres_data
    
    docker volume inspect movie_gpt_postgres_data
    # CreatedAt: 이전 날짜 (캐싱된 데이터)
-   \`\`\`
+   ```
 
 #### 해결 방법
 
 **1단계: 컨테이너와 볼륨 완전 삭제**
-\`\`\`bash
+```bash
 docker-compose down -v  # -v 옵션으로 볼륨도 삭제
-\`\`\`
+```
 
 **2단계: 특정 볼륨 수동 삭제**
-\`\`\`bash
+```bash
 docker volume ls
 docker volume rm movie_gpt_postgres_data
-\`\`\`
+```
 
 **3단계: 익명 볼륨 정리**
-\`\`\`bash
+```bash
 docker volume prune -f  # 사용하지 않는 모든 볼륨 삭제
-\`\`\`
+```
 
 **4단계: 재시작**
-\`\`\`bash
+```bash
 docker-compose up --build
-\`\`\`
+```
 
 **5단계: 초기화 확인**
-\`\`\`bash
+```bash
 docker logs movie_gpt_db | grep "database system is ready"
 # 출력: "Database directory appears to be empty; initializing"
-\`\`\`
+```
 
 #### 예방 방법
 
 **개발 환경: 볼륨 미사용**
-\`\`\`yaml
+```yaml
 # docker-compose.yml
 services:
   db:
     # volumes:  # 주석 처리 (개발 단계)
     #   - postgres_data:/var/lib/postgresql/data
-\`\`\`
+```
 
 **프로덕션 환경: Named Volume 사용**
-\`\`\`yaml
+```yaml
 volumes:
   postgres_data:  # 데이터 영속성 보장
-\`\`\`
+```
 
 #### 학습 포인트
 - Docker 볼륨의 영속성 이해
@@ -1656,10 +1598,10 @@ volumes:
 #### 문제 상황
 GCP Cloud Run 배포 후 컨테이너 시작 실패:
 
-\`\`\`
+```
 ERROR: The user-provided container failed to start and listen 
 on the port defined by the PORT=8080 environment variable
-\`\`\`
+```
 
 #### 원인 분석
 
@@ -1669,34 +1611,34 @@ on the port defined by the PORT=8080 environment variable
    - 하드코딩된 포트 사용 시 실패
 
 2. **Backend Dockerfile 문제**
-   \`\`\`dockerfile
+   ```dockerfile
    # 문제 코드
    CMD ["uvicorn", "app.main:app", "--port", "8000"]
-   \`\`\`
+   ```
    - 포트 8000으로 하드코딩
    - Cloud Run의 \`PORT\` 환경 변수 무시
 
 3. **Frontend Dockerfile 문제**
-   \`\`\`dockerfile
+   ```dockerfile
    # 문제 코드
    CMD ["streamlit", "run", "app.py", "--server.port=8501"]
-   \`\`\`
+   ```
    - Streamlit 기본 포트 8501 하드코딩
 
 #### 해결 방법
 
 **Backend Dockerfile 수정**
-\`\`\`dockerfile
+```dockerfile
 # 변경 전
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 # 변경 후
 ENV PORT=8080
 CMD exec uvicorn app.main:app --host 0.0.0.0 --port \${PORT}
-\`\`\`
+```
 
 **Frontend Dockerfile 수정**
-\`\`\`dockerfile
+```dockerfile
 # 변경 전
 CMD ["streamlit", "run", "app.py", "--server.port=8501"]
 
@@ -1708,10 +1650,10 @@ CMD streamlit run app.py \
     --server.headless=true \
     --server.enableCORS=false \
     --server.enableXsrfProtection=false
-\`\`\`
+```
 
 **로컬 환경 대응**
-\`\`\`yaml
+```yaml
 # docker-compose.yml
 backend:
   environment:
@@ -1724,12 +1666,12 @@ frontend:
     PORT: 8501  # 로컬에서는 8501 사용
   ports:
     - "8501:8501"
-\`\`\`
+```
 
 #### 검증 방법
 
 **로컬 테스트**
-\`\`\`bash
+```bash
 # Backend
 docker build -t backend-test ./backend
 docker run -p 8080:8080 -e PORT=8080 backend-test
@@ -1737,13 +1679,13 @@ docker run -p 8080:8080 -e PORT=8080 backend-test
 # Frontend
 docker build -t frontend-test ./frontend
 docker run -p 8080:8080 -e PORT=8080 -e BASE_URL=http://localhost:8000 frontend-test
-\`\`\`
+```
 
 **Cloud Run 로그 확인**
-\`\`\`bash
+```bash
 gcloud run services logs read movie-gpt-backend --region asia-northeast3
 # 출력: "Uvicorn running on http://0.0.0.0:8080"
-\`\`\`
+```
 
 #### 학습 포인트
 - Cloud Run의 PORT 환경 변수 요구사항 이해
@@ -1757,20 +1699,20 @@ gcloud run services logs read movie-gpt-backend --region asia-northeast3
 #### 문제 상황
 \`gcloud builds submit\` 명령어가 잘못된 Dockerfile 사용:
 
-\`\`\`
+```
 ERROR: Container failed to start
-\`\`\`
+```
 
 로그 확인 결과 포트 하드코딩 문제 발견 (이미 수정했다고 생각했지만 재발)
 
 #### 원인 분석
 
 1. **파일 구조**
-   \`\`\`
+   ```
    backend/
    ├── Dockerfile        # 로컬 개발용 (포트 8000)
    └── Dockerfile.gcp    # GCP 배포용 (PORT 환경 변수)
-   \`\`\`
+   ```
 
 2. **\`gcloud builds submit\` 기본 동작**
    - 기본적으로 \`Dockerfile\`을 찾아서 빌드
@@ -1785,13 +1727,13 @@ ERROR: Container failed to start
 #### 해결 방법
 
 **방법 1: Dockerfile.gcp를 Dockerfile로 복사 (선택함)**
-\`\`\`bash
+```bash
 cd backend
 cp Dockerfile.gcp Dockerfile
-\`\`\`
+```
 
 **방법 2: 통합 Dockerfile 작성**
-\`\`\`dockerfile
+```dockerfile
 # 로컬과 GCP 모두 지원
 FROM python:3.11-slim
 
@@ -1812,14 +1754,14 @@ EXPOSE \${PORT}
 
 # 동적 포트 사용
 CMD exec uvicorn app.main:app --host 0.0.0.0 --port \${PORT}
-\`\`\`
+```
 
 **docker-compose.yml 수정**
-\`\`\`yaml
+```yaml
 backend:
   environment:
     PORT: 8000  # 로컬에서 명시
-\`\`\`
+```
 
 #### 학습 포인트
 - \`gcloud builds submit\`의 기본 동작 이해
@@ -1833,9 +1775,9 @@ backend:
 #### 문제 상황
 Backend에서 Cloud SQL 연결 실패:
 
-\`\`\`
+```
 sqlalchemy.exc.OperationalError: could not connect to server
-\`\`\`
+```
 
 #### 원인 분석
 
@@ -1844,36 +1786,36 @@ sqlalchemy.exc.OperationalError: could not connect to server
    - 일반적인 TCP 연결 방식과 다름
 
 2. **DATABASE_URL 형식 오류**
-   \`\`\`python
+   ```python
    # 잘못된 형식
    postgresql://postgres:password@db:5432/Movie_DB
    
    # 올바른 형식
    postgresql://postgres:password@/Movie_DB?host=/cloudsql/CONNECTION_NAME
-   \`\`\`
+   ```
 
 #### 해결 방법
 
 **1단계: CONNECTION_NAME 확인**
-\`\`\`bash
+```bash
 gcloud sql instances describe movie-gpt-db \
     --format="value(connectionName)"
 
 # 출력: movie-moa:asia-northeast3:movie-gpt-db
-\`\`\`
+```
 
 **2단계: DATABASE_URL 수정**
-\`\`\`bash
+```bash
 # Cloud Run 환경 변수 설정
 gcloud run services update movie-gpt-backend \
     --set-env-vars DATABASE_URL="postgresql://postgres:PASSWORD@/Movie_DB?host=/cloudsql/movie-moa:asia-northeast3:movie-gpt-db"
-\`\`\`
+```
 
 **3단계: Cloud SQL 연결 추가**
-\`\`\`bash
+```bash
 gcloud run deploy movie-gpt-backend \
     --add-cloudsql-instances movie-moa:asia-northeast3:movie-gpt-db
-\`\`\`
+```
 
 #### 학습 포인트
 - Cloud Run과 Cloud SQL의 Unix Socket 연결 방식
@@ -1887,10 +1829,10 @@ gcloud run deploy movie-gpt-backend \
 #### 문제 상황
 Backend 시작 시 모델 파일을 찾지 못함:
 
-\`\`\`
+```
 FileNotFoundError: [Errno 2] No such file or directory: 
 'app/models/sentiment/model_quantized.onnx'
-\`\`\`
+```
 
 #### 원인 분석
 
@@ -1899,44 +1841,44 @@ FileNotFoundError: [Errno 2] No such file or directory:
    - Dockerfile에서 조건문 실패
 
 2. **Dockerfile 조건문 문제**
-   \`\`\`dockerfile
+   ```dockerfile
    # 문제 코드
    RUN if [ ! -f "app/models/sentiment/model_quantized.onnx" ]; then \
            python scripts/convert_model.py; \
        fi
-   \`\`\`
+   ```
    - 경로가 상대 경로로 되어있어 실패할 수 있음
 
 #### 해결 방법
 
 **1단계: 로컬에서 모델 생성**
-\`\`\`bash
+```bash
 cd backend
 python scripts/convert_model.py
-\`\`\`
+```
 
 **2단계: .gitignore 확인**
-\`\`\`
+```
 # .gitignore
 backend/app/models/sentiment/model.onnx
 backend/app/models/sentiment/model_quantized.onnx
-\`\`\`
+```
 
 모델 파일을 Git에 커밋하지 않으면 빌드 시 매번 생성해야 함.
 
 **3단계: Dockerfile 수정**
-\`\`\`dockerfile
+```dockerfile
 # 절대 경로 사용
 RUN if [ ! -f "/app/app/models/sentiment/model_quantized.onnx" ]; then \
         python /app/scripts/convert_model.py; \
     fi
-\`\`\`
+```
 
 **4단계: 또는 항상 생성**
-\`\`\`dockerfile
+```dockerfile
 # 조건문 제거하고 항상 생성 (빌드 시간 증가)
 RUN python scripts/convert_model.py
-\`\`\`
+```
 
 #### 최종 선택
 **모델 파일을 Git에 포함** (가장 안정적)
@@ -1944,13 +1886,13 @@ RUN python scripts/convert_model.py
 - 모델 버전 관리 용이
 - 배포 안정성 보장
 
-\`\`\`bash
+```bash
 # .gitignore에서 모델 파일 제외
 # backend/app/models/sentiment/*.onnx  # 주석 처리
 
 git add backend/app/models/sentiment/model_quantized.onnx
 git commit -m "Add quantized ONNX model"
-\`\`\`
+```
 
 #### 학습 포인트
 - Docker 빌드 시 파일 경로 주의
@@ -2102,14 +2044,6 @@ Movie GPT 프로젝트는 AI 기반 감성 분석 기술을 활용한 실용적�
 특히 6가지 주요 트러블슈팅을 해결하는 과정에서 **문제 분석, 디버깅, 해결책 도출**의 체계적인 접근 방법을 학습했으며, 이는 향후 더 복잡한 시스템을 개발하는 데 큰 자산이 될 것입니다.
 
 향후 사용자 인증, 고급 AI 기능, 모바일 앱 등을 추가하여 실제 서비스로 발전시킬 계획이며, 본 프로젝트가 실무 포트폴리오로서 충분한 가치를 지닐 것으로 기대합니다.
-
----
-
-**작성자**: 주인  
-**프로젝트 기간**: 2024.XX.XX ~ 2024.12.18  
-**GitHub**: [Repository URL]  
-**Frontend**: [배포 URL]  
-**Backend API**: [배포 URL]/docs  
 
 ---
 
