@@ -1,12 +1,16 @@
 from sqlalchemy import create_engine
-from dotenv import load_dotenv
 import os
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-load_dotenv()
-
 db_url = os.getenv("DATABASE_URL")
+
+# 디버깅 출력
+print("=" * 80)
+print("🔍 DATABASE CONFIGURATION DEBUG")
+print("=" * 80)
+if not db_url:
+    raise ValueError("❌ DATABASE_URL environment variable is not set!")
 
 # 데이터베이스 엔진 생성
 engine = create_engine(

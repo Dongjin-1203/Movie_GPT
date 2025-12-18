@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ⭐ 환경 파일 (중요!)
+.env
+.env.*
+!.env.example
+
+# Backend
+backend/.env
+backend/app/models/sentiment/model.onnx
+backend/app/models/sentiment/temp/
+
+# Frontend
+frontend/.env

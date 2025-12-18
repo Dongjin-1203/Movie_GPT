@@ -210,3 +210,19 @@ __marimo__/
 backend/app/models/sentiment/model_quantized.onnx
 backend/app/models/sentiment/model.onnx
 backend/app/models/sentiment/temp/
+
+# Environments
+.env
+.envrc
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Backend
+backend/.env
+
+# Frontend
+frontend/.env
