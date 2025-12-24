@@ -9,3 +9,5 @@ transformers
 optimum[onnxruntime]
 onnxruntime
 scipy
+
+requests

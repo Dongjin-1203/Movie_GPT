@@ -16,11 +16,16 @@ class Movie(Base):
 
     # 컬럼 정의
     id = Column(Integer, primary_key=True, index=True)
+    tmdb_id = Column(Integer, unique=True, nullable=True, index=True)
     title = Column(String(200), nullable=False)
     release_date = Column(String(50))
     director = Column(String(100))
     genre = Column(String(100))
     poster_url = Column(String(500))
+    actors = Column(Text)
+    plot_summary = Column(Text)
+    rating = Column(Float, default=0.0)
+    review_count = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # relationship

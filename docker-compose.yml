@@ -4,7 +4,7 @@ services:
     container_name: movie_gpt_db
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 0331
+      POSTGRES_PASSWORD: "0331"
       POSTGRES_DB: Movie_DB
     ports:
       - "5432:5432"
@@ -21,6 +21,8 @@ services:
     container_name: movie_gpt_backend
     environment:
       DATABASE_URL: postgresql://postgres:0331@db:5432/Movie_DB
+      TMDB_API_KEY: ${TMDB_API_KEY}
+      PORT: "8000"
     ports:
       - "8000:8000"
     depends_on:
