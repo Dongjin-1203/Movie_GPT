@@ -16,10 +16,10 @@ RUN if [ ! -f "app/models/sentiment/model_quantized.onnx" ]; then \
         python scripts/convert_model.py; \
     fi
 
-# 기본값 8000, 환경 변수로 오버라이드 가능
-ENV PORT=8000
+# 기본값 8080, 환경 변수로 오버라이드 가능
+ENV PORT=8080
 
-EXPOSE 8000
+EXPOSE 8080
 
 # 환경 변수 PORT 사용
 CMD exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT}
