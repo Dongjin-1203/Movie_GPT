@@ -22,6 +22,7 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:0331@db:5432/Movie_DB
       TMDB_API_KEY: ${TMDB_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       PORT: "8000"
     ports:
       - "8000:8000"

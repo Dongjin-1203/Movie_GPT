@@ -19,7 +19,7 @@ def render_chatbot_button():
             st.session_state.chat_messages = [
                 {
                     "role": "assistant",
-                    "content": "안녕하세요! 😊\n\n원하는 **장르**, **감독**, **분위기**를 알려주시면 추천해드립니다!\n\n**예시:**\n- '스릴러 추천해줘'\n- '봉준호 감독 영화'\n- '평점 높은 드라마'\n- '재미있는 코미디'"
+                    "content": "안녕하세요! 😊\n\n**AI 추천 시스템**이 TMDB 데이터베이스에서 최적의 영화를 찾아드립니다!\n\n**예시:**\n- '긴장감 넘치는 스릴러 추천해줘'\n- '2020년대 코미디 영화'\n- '평점 높은 SF 영화'\n- '감동적인 드라마'"
                 }
             ]
         
@@ -41,7 +41,7 @@ def render_chatbot_button():
                 st.session_state.chat_messages = []
                 st.rerun()
         
-        # 사용자 입력 (✅ st.rerun() 제거)
+        # 사용자 입력
         user_input = st.chat_input("메시지를 입력하세요...")
         
         if user_input:
@@ -56,63 +56,80 @@ def render_chatbot_button():
                 with st.chat_message("user"):
                     st.write(user_input)
             
-            # 추천 받기
-            with st.spinner("🎬 영화를 찾는 중..."):
-                params = extract_keywords(user_input)
-                
-                # 디버그 정보
-                debug_info = f"🔍 검색 조건: {params}"
-                
-                recommendations = get_recommendations(params)
+            # ✅ AI 추천 시도
+            with st.spinner("🤖 AI가 TMDB에서 영화를 검색하는 중..."):
+                ai_response = get_ai_recommendations(user_input)
             
-            # 봇 응답 생성
-            if recommendations:
-                response = "추천 영화를 찾았습니다! 🎉\n\n"
-                for i, movie in enumerate(recommendations, 1):
-                    response += f"**{i}. {movie.get('title', '제목 없음')}**\n"
-                    
-                    info = []
-                    if movie.get('director'):
-                        info.append(f"🎥 {movie['director']}")
-                    if movie.get('genre'):
-                        info.append(f"🎭 {movie['genre']}")
-                    if movie.get('release_date'):
-                        info.append(f"📅 {movie['release_date'][:4]}")
-                    
-                    if info:
-                        response += f"   {' | '.join(info)}\n"
-                    
-                    if movie.get('rating', 0) > 0:
-                        stars = "⭐" * min(int(movie['rating'] * 5), 5)
-                        response += f"   {stars} {movie['rating']:.2f}\n"
-                    
-                    if movie.get('plot_summary'):
-                        summary = movie['plot_summary'][:100] + "..." if len(movie.get('plot_summary', '')) > 100 else movie.get('plot_summary', '')
-                        response += f"   💭 {summary}\n"
-                    
-                    response += "\n"
+            # 응답 생성
+            response = None
+            
+            # AI 추천 성공
+            if ai_response and ai_response.get("response"):
+                response = ai_response["response"]
                 
-                response += f"\n_{debug_info}_"
+                # 디버그 정보 추가 (선택)
+                if ai_response.get("conversation"):
+                    response += "\n\n---\n_🤖 AI 추천 시스템 사용됨_"
+            
+            # Fallback: 기존 방식
             else:
-                response = f"조건에 맞는 영화를 찾지 못했습니다. 😢\n\n"
-                response += f"_{debug_info}_\n\n"
-                response += "**다른 키워드를 시도해보세요:**\n"
-                response += "- 장르: 스릴러, 드라마, 코미디, 액션, 공포\n"
-                response += "- 감독: 봉준호, 박찬욱, 나홍진\n"
-                response += "- 평점: '평점 높은', '재미있는'"
+                st.warning("AI 추천을 사용할 수 없습니다. 기본 검색을 사용합니다.")
+                
+                params = extract_keywords(user_input)
+                recommendations = get_recommendations(params)
+                
+                if recommendations:
+                    response = "추천 영화를 찾았습니다! 🎉\n\n"
+                    
+                    for i, movie in enumerate(recommendations, 1):
+                        response += f"**{i}. {movie.get('title', '제목 없음')}**\n"
+                        
+                        # 영화 정보
+                        info = []
+                        if movie.get('director'):
+                            info.append(f"🎥 {movie['director']}")
+                        if movie.get('genre'):
+                            info.append(f"🎭 {movie['genre']}")
+                        if movie.get('release_date'):
+                            info.append(f"📅 {movie['release_date'][:4]}")
+                        
+                        if info:
+                            response += f"   {' | '.join(info)}\n"
+                        
+                        # 평점
+                        if movie.get('rating', 0) > 0:
+                            stars = "⭐" * min(int(movie['rating'] * 5), 5)
+                            response += f"   {stars} {movie['rating']:.2f}\n"
+                        
+                        # 줄거리
+                        if movie.get('plot_summary'):
+                            summary = movie['plot_summary']
+                            if len(summary) > 100:
+                                summary = summary[:100] + "..."
+                            response += f"   💭 {summary}\n"
+                        
+                        response += "\n"
+                    
+                    response += f"\n_🔍 검색 조건: {params}_"
+                else:
+                    response = f"조건에 맞는 영화를 찾지 못했습니다. 😢\n\n"
+                    response += f"_검색 조건: {params}_\n\n"
+                    response += "**다른 키워드를 시도해보세요:**\n"
+                    response += "- 장르: 스릴러, 드라마, 코미디, 액션, 공포\n"
+                    response += "- 감독: 봉준호, 박찬욱, 나홍진\n"
+                    response += "- 평점: '평점 높은', '재미있는'"
             
-            # 봇 응답 추가
-            st.session_state.chat_messages.append({
-                "role": "assistant",
-                "content": response
-            })
-            
-            # 즉시 표시
-            with chat_container:
-                with st.chat_message("assistant"):
-                    st.write(response)
-            
-            # ✅ st.rerun() 제거 - 자동으로 업데이트됨
+            # ✅ 응답 추가 및 표시 (한 번만!)
+            if response:
+                st.session_state.chat_messages.append({
+                    "role": "assistant",
+                    "content": response
+                })
+                
+                # 즉시 표시
+                with chat_container:
+                    with st.chat_message("assistant"):
+                        st.write(response)
     
     # 우하단 고정 버튼
     if st.button("🤖", key="chatbot_trigger", help="영화 추천 챗봇", type="secondary"):
@@ -145,7 +162,7 @@ def render_chatbot_button():
 
 
 def get_recommendations(params: dict):
-    """Backend API 호출"""
+    """Backend API 호출 (기존 방식)"""
     try:
         response = requests.get(
             f"{BASE_URL}/movies/recommend",
@@ -161,70 +178,57 @@ def get_recommendations(params: dict):
         return []
 
 
+def get_ai_recommendations(user_query: str):
+    """Claude + MCP AI 추천"""
+    try:
+        response = requests.post(
+            f"{BASE_URL}/movies/recommend/ai",
+            json={"query": user_query},
+            timeout=60  # ✅ AI 처리 시간 충분히 (30초 → 60초)
+        )
+        
+        if response.status_code == 200:
+            return response.json()
+        else:
+            st.error(f"AI 추천 API 오류: {response.status_code}")
+            return None
+    except requests.exceptions.Timeout:
+        st.error("AI 추천 시간 초과 (60초)")
+        return None
+    except Exception as e:
+        st.error(f"AI 추천 오류: {str(e)}")
+        return None
+
+
 def extract_keywords(query: str):
-    """사용자 입력에서 키워드 추출 (개선된 버전)"""
+    """사용자 입력에서 키워드 추출 (Fallback용)"""
     query_lower = query.lower()
     params = {"limit": 5}
     
-    found_any = False
-    
-    # ========================================
-    # 장르 키워드 (확장)
-    # ========================================
+    # 장르 키워드
     genre_map = {
         "스릴러": ["스릴러", "thriller", "긴장", "추리", "서스펜스", "미스터리"],
         "드라마": ["드라마", "drama", "감동", "인간", "휴먼", "가족"],
         "코미디": ["코미디", "comedy", "웃긴", "재미있는", "유머", "개그", "웃음"],
-        "액션": ["액션", "action", "전투", "격투", "싸움", "액션"],
+        "액션": ["액션", "action", "전투", "격투", "싸움"],
         "공포": ["공포", "horror", "무서운", "호러", "귀신", "좀비"],
         "로맨스": ["로맨스", "romance", "사랑", "멜로", "연애"],
         "SF": ["sf", "공상과학", "미래", "우주"],
-        "애니메이션": ["애니", "animation", "만화", "애니메이션"],
+        "애니메이션": ["애니", "animation", "만화"],
         "범죄": ["범죄", "crime", "형사", "수사"],
-        "전쟁": ["전쟁", "war", "전투"],
-        "다큐": ["다큐", "documentary", "실화"]
     }
     
     for genre, keywords in genre_map.items():
         if any(kw in query_lower for kw in keywords):
             params["genre"] = genre
-            found_any = True
             break
     
-    # ========================================
-    # 감독 키워드 (확장)
-    # ========================================
-    director_map = {
-        "봉준호": ["봉준호", "bong joon", "bong"],
-        "박찬욱": ["박찬욱", "park chan"],
-        "나홍진": ["나홍진", "na hong"],
-        "김지운": ["김지운", "kim jee"],
-        "최동훈": ["최동훈", "choi dong"],
-        "이창동": ["이창동", "lee chang"],
-        "홍상수": ["홍상수", "hong sang"]
-    }
-    
-    for director, keywords in director_map.items():
-        if any(kw in query_lower for kw in keywords):
-            params["director"] = director
-            found_any = True
-            break
-    
-    # ========================================
-    # 평점 키워드 (확장)
-    # ========================================
-    if any(word in query_lower for word in ["평점 높은", "명작", "최고", "인기", "유명한", "대박"]):
+    # 평점 키워드
+    if any(word in query_lower for word in ["평점 높은", "명작", "최고", "인기"]):
         params["min_rating"] = 0.7
-        found_any = True
-    elif any(word in query_lower for word in ["재미있는", "잘 만든", "괜찮은", "좋은"]):
-        params["min_rating"] = 0.6
-        found_any = True
-    
-    # ========================================
-    # 키워드를 하나도 못 찾은 경우
-    # ========================================
-    if not found_any:
-        # 기본값: 평점 높은 영화 추천
+    elif any(word in query_lower for word in ["재미있는", "좋은"]):
         params["min_rating"] = 0.5
+    else:
+        params["min_rating"] = 0.3
     
     return params
