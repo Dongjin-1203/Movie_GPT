@@ -10,9 +10,10 @@ FastAPI 라우터 - 영화 관련 모든 API 엔드포인트 정의
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 import requests
 import os
+from sqlalchemy import or_
 
 from app.database import get_db
 from .. import models, schemas
@@ -212,3 +213,86 @@ def delete_movie(movie_id: int, db: Session = Depends(get_db)):
     db.delete(movie)
     db.commit()
     return {"message": "Movie deleted successfully"}
+
+# ========================================
+# 추천 API
+# ========================================
+
+@router.get("/recommend", response_model=List[schemas.MovieResponse])
+def recommend_movies(
+    genre: Optional[str] = None,
+    director: Optional[str] = None,
+    min_rating: float = 0.0,
+    sentiment: Optional[str] = None,  # positive, negative, neutral
+    limit: int = 5,
+    db: Session = Depends(get_db)
+):
+    """
+    간단한 영화 추천 API
+    
+    Parameters:
+    - genre: 장르 (예: "스릴러", "드라마")
+    - director: 감독 이름
+    - min_rating: 최소 평점 (0.0 ~ 1.0)
+    - sentiment: 긍정/부정 리뷰가 많은 영화
+    - limit: 추천 개수
+    """
+    query = db.query(models.Movie)
+    
+    # 장르 필터
+    if genre:
+        query = query.filter(models.Movie.genre.ilike(f"%{genre}%"))
+    
+    # 감독 필터
+    if director:
+        query = query.filter(models.Movie.director.ilike(f"%{director}%"))
+    
+    # 최소 평점 필터
+    query = query.filter(models.Movie.rating >= min_rating)
+    
+    # 리뷰가 있는 영화만
+    query = query.filter(models.Movie.review_count > 0)
+    
+    # 평점 높은 순 정렬
+    query = query.order_by(models.Movie.rating.desc())
+    
+    # 제한
+    movies = query.limit(limit).all()
+    
+    return movies
+
+
+@router.get("/recommend/similar/{movie_id}", response_model=List[schemas.MovieResponse])
+def recommend_similar(
+    movie_id: int,
+    limit: int = 5,
+    db: Session = Depends(get_db)
+):
+    """
+    특정 영화와 비슷한 영화 추천
+    (같은 장르 + 같은 감독 우선)
+    """
+    # 기준 영화
+    base_movie = db.query(models.Movie).filter(models.Movie.id == movie_id).first()
+    if not base_movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+    
+    # 비슷한 영화 찾기
+    query = db.query(models.Movie).filter(models.Movie.id != movie_id)
+    
+    # 같은 장르 또는 같은 감독
+    if base_movie.genre or base_movie.director:
+        conditions = []
+        
+        if base_movie.genre:
+            conditions.append(models.Movie.genre.ilike(f"%{base_movie.genre}%"))
+        
+        if base_movie.director:
+            conditions.append(models.Movie.director.ilike(f"%{base_movie.director}%"))
+        
+        query = query.filter(or_(*conditions))
+    
+    # 평점 높은 순
+    movies = query.order_by(models.Movie.rating.desc()).limit(limit).all()
+    
+    return movies
