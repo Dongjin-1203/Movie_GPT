@@ -1,128 +1,224 @@
+# frontend/pages/3_리뷰작성.py
 import streamlit as st
-from utils.api_client import client 
+import requests
+import os
 
-# 페이지 제목
+st.set_page_config(page_title="리뷰 작성", page_icon="✍️", layout="wide")
+
+BASE_URL = os.getenv("BASE_URL", "http://backend:8000")
+
+
+def get_all_movies():
+    """전체 영화 목록 가져오기"""
+    try:
+        response = requests.get(f"{BASE_URL}/movies/", timeout=10)
+        if response.status_code == 200:
+            return response.json()
+        return []
+    except Exception as e:
+        st.error(f"❌ 영화 목록 조회 실패: {str(e)}")
+        return []
+
+
+def create_review(movie_id: int, author: str, content: str):
+    """리뷰 작성"""
+    try:
+        response = requests.post(
+            f"{BASE_URL}/reviews/",
+            json={
+                "movie_id": movie_id,
+                "author": author,
+                "content": content
+            },
+            timeout=10
+        )
+        if response.status_code == 201:
+            return True, response.json()
+        else:
+            return False, None
+    except Exception as e:
+        st.error(f"❌ 리뷰 작성 실패: {str(e)}")
+        return False, None
+
+
+# 세션 상태 초기화
+if 'review_submitted' not in st.session_state:
+    st.session_state.review_submitted = False
+if 'review_data' not in st.session_state:
+    st.session_state.review_data = None
+
+
+# 메인 UI
 st.title("✍️ 리뷰 작성")
-st.write("영화를 보고 느낀 점을 공유해주세요!")
-
-st.divider()
+st.markdown("---")
 
 # 영화 목록 가져오기
-movies = client.get_all_movies()
+with st.spinner("📥 영화 목록을 불러오는 중..."):
+    movies = get_all_movies()
 
-if len(movies) == 0:
+if not movies:
     st.warning("⚠️ 등록된 영화가 없습니다.")
-    st.info("먼저 '영화 추가' 페이지에서 영화를 추가해주세요!")
-    st.stop()  # 페이지 실행 중지
+    st.info("💡 '영화 추가' 페이지에서 먼저 영화를 추가해주세요.")
+    st.stop()
 
 # 영화 선택
-st.subheader("1️⃣ 영화 선택")
+st.subheader("🎬 영화 선택")
 
-# 영화 목록을 {title: id} 딕셔너리로 변환
-movie_dict = {movie["title"]: movie["id"] for movie in movies}
+movie_options = {}
+for movie in movies:
+    title = movie.get('title', '제목 없음')
+    year = movie.get('release_date', '')[:4] if movie.get('release_date') else '?'
+    label = f"{title} ({year})"
+    movie_options[label] = movie.get('id')
 
-selected_movie_title = st.selectbox(
-    "리뷰를 작성할 영화를 선택하세요",
-    options=list(movie_dict.keys()),
-    placeholder="영화를 선택하세요"
+selected_movie_label = st.selectbox(
+    "영화를 선택하세요",
+    options=list(movie_options.keys()),
+    label_visibility="collapsed"
 )
 
-selected_movie_id = movie_dict[selected_movie_title]
+selected_movie_id = movie_options[selected_movie_label]
+selected_movie = next((m for m in movies if m.get("id") == selected_movie_id), None)
 
-st.divider()
+# 선택된 영화 정보 표시
+if selected_movie:
+    col1, col2 = st.columns([1, 3])
+    
+    with col1:
+        if selected_movie.get("poster_url"):
+            st.image(selected_movie["poster_url"], use_container_width=True)
+        else:
+            st.markdown("### 🎬")
+    
+    with col2:
+        st.markdown(f"### {selected_movie.get('title', '제목 없음')}")
+        
+        info_parts = []
+        if selected_movie.get("director"):
+            info_parts.append(f"🎥 {selected_movie['director']}")
+        if selected_movie.get("genre"):
+            info_parts.append(f"🎭 {selected_movie['genre']}")
+        if selected_movie.get("release_date"):
+            info_parts.append(f"📅 {selected_movie['release_date'][:4]}")
+        
+        if info_parts:
+            st.caption(" | ".join(info_parts))
+        
+        if selected_movie.get("actors"):
+            st.caption(f"👥 출연: {selected_movie['actors']}")
+
+st.markdown("---")
 
 # 리뷰 작성 폼
-st.subheader("2️⃣ 리뷰 작성")
+st.subheader("✍️ 리뷰 작성")
 
-with st.form("review_form"):
-    
-    # 작성자
+# 🔥 Form 시작
+with st.form("review_form", clear_on_submit=True):
     author = st.text_input(
-        "작성자 *",
-        placeholder="이름 또는 닉네임",
-        help="필수 입력 항목입니다"
+        "작성자 이름*",
+        placeholder="예: 홍길동",
+        help="리뷰 작성자의 이름을 입력하세요"
     )
     
-    # 리뷰 내용
     content = st.text_area(
-        "리뷰 내용 *",
-        placeholder="영화를 보고 느낀 점을 자유롭게 작성해주세요 (최소 5자)",
+        "리뷰 내용*",
+        placeholder="영화에 대한 솔직한 의견을 작성해주세요...\n\n예:\n- 연기가 정말 인상적이었어요\n- 스토리가 흥미진진했습니다\n- 영상미가 뛰어났어요",
         height=200,
-        help="필수 입력 항목입니다"
+        help="최소 5자 이상 작성해주세요"
     )
     
-    # 제출 버튼
-    submitted = st.form_submit_button("리뷰 등록", type="primary")
-
-# 폼 제출 처리
-if submitted:
-    # 입력 검증
-    if not author.strip():
-        st.error("❌ 작성자는 필수 입력 항목입니다!")
-    elif not content.strip():
-        st.error("❌ 리뷰 내용은 필수 입력 항목입니다!")
-    elif len(content.strip()) < 5:
-        st.error("❌ 리뷰 내용은 최소 5자 이상이어야 합니다!")
-    else:
-        # API 요청 데이터
-        review_data = {
-            "movie_id": selected_movie_id,
-            "author": author.strip(),
-            "content": content.strip()
-        }
-        
-        # 로딩 표시
-        with st.spinner("🤖 AI가 감성을 분석하고 있습니다..."):
-            result = client.create_review(review_data)
-        
-        # 결과 처리
-        if result:
-            st.success(f"✅ 리뷰가 성공적으로 등록되었습니다!")
-            st.balloons()
-            
-            # 감성 분석 결과 표시
-            st.divider()
-            st.subheader("🤖 AI 감성 분석 결과")
-            
-            sentiment_label = result.get("sentiment_label")
-            sentiment_score = result.get("sentiment_score", 0)
-            
-            # 이모지 매핑
-            emoji_map = {
-                "positive": "😊",
-                "negative": "😞",
-                "neutral": "😐"
-            }
-            
-            label_kr = {
-                "positive": "긍정",
-                "negative": "부정",
-                "neutral": "중립"
-            }
-            
-            emoji = emoji_map.get(sentiment_label, "😐")
-            label_text = label_kr.get(sentiment_label, "중립")
-            
-            # 3열 레이아웃
-            col1, col2, col3 = st.columns(3)
-            
-            with col1:
-                st.metric("감성", f"{emoji} {label_text}")
-            
-            with col2:
-                st.metric("신뢰도", f"{sentiment_score:.1%}")
-            
-            with col3:
-                st.metric("영화", selected_movie_title)
-            
-            # 등록된 리뷰 표시
-            st.divider()
-            st.subheader("등록된 리뷰")
-            
-            with st.expander("리뷰 내용 보기", expanded=True):
-                st.write(f"**작성자**: {result['author']}")
-                st.write(f"**내용**: {result['content']}")
-                st.caption(f"등록일: {result['created_at'][:10]}")
-        
+    st.caption("💡 **작성 팁**: AI가 자동으로 감성을 분석합니다. 솔직하고 구체적으로 작성할수록 정확도가 높아집니다.")
+    
+    # Form 안에서는 form_submit_button만 사용!
+    submitted = st.form_submit_button(
+        "📝 리뷰 등록",
+        type="primary",
+        use_container_width=True
+    )
+    
+    if submitted:
+        if not author or not author.strip():
+            st.error("❌ 작성자 이름을 입력해주세요")
+        elif not content or not content.strip():
+            st.error("❌ 리뷰 내용을 입력해주세요")
+        elif len(content.strip()) < 5:
+            st.error("❌ 리뷰 내용은 최소 5자 이상 작성해주세요")
         else:
-            st.error("❌ 리뷰 등록에 실패했습니다. 다시 시도해주세요.")
+            with st.spinner("🤖 AI가 감성을 분석 중입니다..."):
+                success, review_data = create_review(
+                    selected_movie_id,
+                    author.strip(),
+                    content.strip()
+                )
+            
+            if success:
+                st.session_state.review_submitted = True
+                st.session_state.review_data = review_data
+                st.rerun()
+# 🔥 Form 끝 - 이 줄 이후부터 일반 버튼 사용 가능!
+
+# 🔥 Form 밖에서 결과 표시
+if st.session_state.review_submitted and st.session_state.review_data:
+    st.success("✅ 리뷰가 성공적으로 등록되었습니다!")
+    st.balloons()
+    
+    review_data = st.session_state.review_data
+    st.markdown("---")
+    st.subheader("📊 감성 분석 결과")
+    
+    sentiment_label = review_data.get("sentiment_label", "알 수 없음")
+    sentiment_score = review_data.get("sentiment_score", 0)
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if sentiment_label == "positive":
+            st.success("😊 긍정적인 리뷰입니다")
+        elif sentiment_label == "negative":
+            st.error("😞 부정적인 리뷰입니다")
+        else:
+            st.info("😐 중립적인 리뷰입니다")
+    
+    with col2:
+        st.metric("감성 점수", f"{sentiment_score:.2f}")
+    
+    st.caption("💡 감성 점수는 0(부정)부터 1(긍정)까지의 값입니다")
+    
+    # 🔥 이제 Form 밖이므로 일반 버튼 사용 가능!
+    st.markdown("---")
+    if st.button("🔄 다른 영화 리뷰 작성하기", type="secondary"):
+        st.session_state.review_submitted = False
+        st.session_state.review_data = None
+        st.rerun()
+
+# 사이드바
+with st.sidebar:
+    st.header("💡 리뷰 작성 가이드")
+    
+    st.markdown("""
+    ### ✍️ 좋은 리뷰 작성법
+    
+    **구체적으로 작성하세요:**
+    - ✅ "연기가 훌륭했다"
+    - ✅ "스토리가 흥미진진했다"
+    - ❌ "좋았다", "별로"
+    
+    **솔직하게 작성하세요:**
+    - 장점과 단점을 균형있게
+    - 개인적인 감상 포함
+    
+    **스포일러 주의:**
+    - 핵심 반전은 피해주세요
+    - 결말 언급 시 주의 표시
+    """)
+    
+    st.markdown("---")
+    
+    st.header("🤖 AI 감성 분석")
+    st.markdown("""
+    작성된 리뷰는 AI가 자동으로 분석하여:
+    - 😊 긍정 / 😞 부정 / 😐 중립 분류
+    - 0-1 사이의 감성 점수 부여
+    
+    이 정보는 다른 사용자들에게 영화 선택의 참고 자료가 됩니다!
+    """)

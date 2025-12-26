@@ -4,6 +4,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List
 
 from app.database import get_db
@@ -16,6 +17,29 @@ router = APIRouter(
     prefix="/reviews",
     tags=["reviews"]
 )
+
+
+def update_movie_stats(movie_id: int, db: Session):
+    """영화의 평균 평점과 리뷰 개수 업데이트"""
+    # 해당 영화의 모든 리뷰 조회
+    reviews = db.query(Review).filter(Review.movie_id == movie_id).all()
+    
+    # 리뷰 개수
+    review_count = len(reviews)
+    
+    # 평균 감성 점수 계산
+    if review_count > 0:
+        valid_scores = [r.sentiment_score for r in reviews if r.sentiment_score is not None]
+        average_rating = sum(valid_scores) / len(valid_scores) if valid_scores else 0.0
+    else:
+        average_rating = 0.0
+    
+    # Movie 업데이트
+    movie = db.query(Movie).filter(Movie.id == movie_id).first()
+    if movie:
+        movie.rating = round(average_rating, 4)
+        movie.review_count = review_count
+        db.commit()
 
 
 # API 1: 리뷰 작성
@@ -44,6 +68,9 @@ def create_review(review: ReviewCreate, db: Session = Depends(get_db)):
     db.add(db_review)
     db.commit()
     db.refresh(db_review)
+    
+    # 🔥 5. 영화 통계 업데이트
+    update_movie_stats(review.movie_id, db)
     
     return db_review
 
@@ -96,9 +123,15 @@ def delete_review(review_id: int, db: Session = Depends(get_db)):
     if review is None:
         raise HTTPException(404, "Review not found")
     
+    # 영화 ID 저장 (삭제 전에)
+    movie_id = review.movie_id
+    
     # 삭제
     db.delete(review)
     db.commit()
+    
+    # 🔥 영화 통계 업데이트
+    update_movie_stats(movie_id, db)
     
     return {"message": "Review deleted successfully"}
 
@@ -126,8 +159,9 @@ def get_movie_rating(movie_id: int, db: Session = Depends(get_db)):
             "review_count": 0
         }
     
-    total_score = sum(r.sentiment_score for r in reviews if r.sentiment_score)
-    count = len([r for r in reviews if r.sentiment_score])
+    valid_scores = [r.sentiment_score for r in reviews if r.sentiment_score is not None]
+    count = len(valid_scores)
+    total_score = sum(valid_scores)
     
     average = total_score / count if count > 0 else 0.0
     
