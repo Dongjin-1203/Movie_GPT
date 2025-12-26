@@ -11,6 +11,7 @@ env:
   ARTIFACT_REPO: movie-gpt-repo
   BACKEND_SERVICE: movie-gpt-backend
   FRONTEND_SERVICE: movie-gpt-frontend
+  CLOUD_SQL_CONNECTION: movie-moa:asia-northeast3:movie-gpt-db
 
 jobs:
   deploy:
@@ -25,31 +26,20 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
-    # ✅ 강화된 GCP 인증
     - id: 'auth'
       name: 'Authenticate to Google Cloud'
       uses: 'google-github-actions/auth@v2'
       with:
         credentials_json: '${{ secrets.GCP_SA_KEY }}'
     
-    # ✅ Cloud SDK 설정
     - name: 'Set up Cloud SDK'
       uses: 'google-github-actions/setup-gcloud@v2'
       with:
         project_id: ${{ env.PROJECT_ID }}
     
-    # ✅ Docker 인증 (gcloud auth 사용)
     - name: 'Configure Docker'
       run: |
         gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
-    
-    # ✅ 현재 인증 확인 (디버깅)
-    - name: 'Verify Authentication'
-      run: |
-        gcloud auth list
-        gcloud config list
-        echo "Current project: $(gcloud config get-value project)"
-        echo "Current account: $(gcloud config get-value account)"
     
     - name: Build Backend Image
       run: |
@@ -63,7 +53,6 @@ jobs:
         docker tag ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/frontend:${{ github.sha }} \
                    ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/frontend:latest
     
-    # ✅ 이미지 푸시 전 인증 재확인
     - name: 'Re-authenticate before push'
       run: |
         gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
@@ -86,7 +75,13 @@ jobs:
           --platform=managed \
           --region=${{ env.REGION }} \
           --allow-unauthenticated \
-          --set-env-vars="TMDB_API_KEY=${{ secrets.TMDB_API_KEY }},ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}"
+          --add-cloudsql-instances=${{ env.CLOUD_SQL_CONNECTION }} \
+          --timeout=600 \
+          --memory=1Gi \
+          --cpu=2 \
+          --min-instances=0 \
+          --max-instances=10 \
+          --set-env-vars="TMDB_API_KEY=${{ secrets.TMDB_API_KEY }},ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }},DATABASE_URL=${{ secrets.DATABASE_URL }}"
     
     - name: Deploy Frontend to Cloud Run
       run: |
@@ -97,6 +92,11 @@ jobs:
           --platform=managed \
           --region=${{ env.REGION }} \
           --allow-unauthenticated \
+          --timeout=600 \
+          --memory=1Gi \
+          --cpu=1 \
+          --min-instances=0 \
+          --max-instances=10 \
           --set-env-vars="BASE_URL=${BACKEND_URL}"
     
     - name: Show URLs
