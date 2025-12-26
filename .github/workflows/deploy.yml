@@ -10,6 +10,7 @@ env:
   REGION: asia-northeast3
   BACKEND_SERVICE: movie-gpt-backend
   FRONTEND_SERVICE: movie-gpt-frontend
+  ARTIFACT_REPO: movie-gpt-repo
 
 jobs:
   deploy:
@@ -27,33 +28,33 @@ jobs:
         project_id: ${{ secrets.GCP_PROJECT_ID }}
         export_default_credentials: true
     
-    - name: Configure Docker for GCP
+    - name: Authenticate Docker to Artifact Registry
       run: |
-        gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+        gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
     
     - name: Build Backend Image
       run: |
-        docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/movie-gpt/backend:${{ github.sha }} ./backend
-        docker tag ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/movie-gpt/backend:${{ github.sha }} \
-                   ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/movie-gpt/backend:latest
+        docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:${{ github.sha }} ./backend
+        docker tag ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:${{ github.sha }} \
+                   ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest
     
     - name: Build Frontend Image
       run: |
-        docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/movie-gpt/frontend:${{ github.sha }} ./frontend
-        docker tag ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/movie-gpt/frontend:${{ github.sha }} \
-                   ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/movie-gpt/frontend:latest
+        docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/frontend:${{ github.sha }} ./frontend
+        docker tag ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/frontend:${{ github.sha }} \
+                   ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/frontend:latest
     
     - name: Push Images
       run: |
-        docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/movie-gpt/backend:${{ github.sha }}
-        docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/movie-gpt/backend:latest
-        docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/movie-gpt/frontend:${{ github.sha }}
-        docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/movie-gpt/frontend:latest
+        docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:${{ github.sha }}
+        docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest
+        docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/frontend:${{ github.sha }}
+        docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/frontend:latest
     
     - name: Deploy Backend to Cloud Run
       run: |
         gcloud run deploy ${{ env.BACKEND_SERVICE }} \
-          --image=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/movie-gpt/backend:latest \
+          --image=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/backend:latest \
           --platform=managed \
           --region=${{ env.REGION }} \
           --allow-unauthenticated \
@@ -64,7 +65,7 @@ jobs:
         BACKEND_URL=$(gcloud run services describe ${{ env.BACKEND_SERVICE }} --region=${{ env.REGION }} --format='value(status.url)')
         
         gcloud run deploy ${{ env.FRONTEND_SERVICE }} \
-          --image=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/movie-gpt/frontend:latest \
+          --image=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/frontend:latest \
           --platform=managed \
           --region=${{ env.REGION }} \
           --allow-unauthenticated \
@@ -72,7 +73,10 @@ jobs:
     
     - name: Show URLs
       run: |
+        echo "✅ Deployment Complete!"
+        echo ""
         echo "Backend URL:"
         gcloud run services describe ${{ env.BACKEND_SERVICE }} --region=${{ env.REGION }} --format='value(status.url)'
+        echo ""
         echo "Frontend URL:"
         gcloud run services describe ${{ env.FRONTEND_SERVICE }} --region=${{ env.REGION }} --format='value(status.url)'
