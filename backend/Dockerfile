@@ -12,14 +12,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 RUN rm -f .env
 
-RUN if [ ! -f "app/models/sentiment/model_quantized.onnx" ]; then \
-        python scripts/convert_model.py; \
+# 모델 변환은 선택적으로
+RUN if [ -f "scripts/convert_model.py" ] && [ ! -f "app/models/sentiment/model_quantized.onnx" ]; then \
+        python scripts/convert_model.py || echo "Model conversion skipped"; \
     fi
 
-# 기본값 8080, 환경 변수로 오버라이드 가능
-ENV PORT=8080
-
-EXPOSE 8080
-
-# 환경 변수 PORT 사용
-CMD exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT}
+# ✅ Cloud Run의 PORT 환경 변수 사용 (기본값 8080)
+CMD exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}
