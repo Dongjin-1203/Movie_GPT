@@ -9,6 +9,10 @@ st.set_page_config(page_title="리뷰 목록", page_icon="💬", layout="wide")
 
 BASE_URL = os.getenv("BASE_URL", "http://backend:8000")
 
+import sys
+sys.path.append('/app')  # Docker 경로
+
+from components.chatbot import render_chatbot_button
 
 def get_all_reviews():
     """전체 리뷰 목록 가져오기"""
