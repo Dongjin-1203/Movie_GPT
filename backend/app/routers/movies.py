@@ -10,13 +10,17 @@ FastAPI 라우터 - 영화 관련 모든 API 엔드포인트 정의
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 import requests
 import os
+from sqlalchemy import or_
+from anthropic import Anthropic
+import json
 
 from app.database import get_db
 from .. import models, schemas
 from ..database import get_db
+from app.services.mcp_client import get_mcp_client
 
 # 라우터 생성
 router = APIRouter(
@@ -28,6 +32,9 @@ router = APIRouter(
 TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 TMDB_BASE_URL = "https://api.themoviedb.org/3"
 TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500"
+
+# claude 설정
+anthropic_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 # ========================================
 # 🆕 TMDB 검색 API
@@ -212,3 +219,174 @@ def delete_movie(movie_id: int, db: Session = Depends(get_db)):
     db.delete(movie)
     db.commit()
     return {"message": "Movie deleted successfully"}
+
+# ========================================
+# 추천 API
+# ========================================
+
+@router.get("/recommend", response_model=List[schemas.MovieResponse])
+def recommend_movies(
+    genre: Optional[str] = None,
+    director: Optional[str] = None,
+    min_rating: float = 0.0,
+    sentiment: Optional[str] = None,  # positive, negative, neutral
+    limit: int = 5,
+    db: Session = Depends(get_db)
+):
+    """
+    간단한 영화 추천 API
+    
+    Parameters:
+    - genre: 장르 (예: "스릴러", "드라마")
+    - director: 감독 이름
+    - min_rating: 최소 평점 (0.0 ~ 1.0)
+    - sentiment: 긍정/부정 리뷰가 많은 영화
+    - limit: 추천 개수
+    """
+    query = db.query(models.Movie)
+    
+    # 장르 필터
+    if genre:
+        query = query.filter(models.Movie.genre.ilike(f"%{genre}%"))
+    
+    # 감독 필터
+    if director:
+        query = query.filter(models.Movie.director.ilike(f"%{director}%"))
+    
+    # 최소 평점 필터
+    query = query.filter(models.Movie.rating >= min_rating)
+    
+    # 리뷰가 있는 영화만
+    query = query.filter(models.Movie.review_count > 0)
+    
+    # 평점 높은 순 정렬
+    query = query.order_by(models.Movie.rating.desc())
+    
+    # 제한
+    movies = query.limit(limit).all()
+    
+    return movies
+
+
+@router.get("/recommend/similar/{movie_id}", response_model=List[schemas.MovieResponse])
+def recommend_similar(
+    movie_id: int,
+    limit: int = 5,
+    db: Session = Depends(get_db)
+):
+    """
+    특정 영화와 비슷한 영화 추천
+    (같은 장르 + 같은 감독 우선)
+    """
+    # 기준 영화
+    base_movie = db.query(models.Movie).filter(models.Movie.id == movie_id).first()
+    if not base_movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+    
+    # 비슷한 영화 찾기
+    query = db.query(models.Movie).filter(models.Movie.id != movie_id)
+    
+    # 같은 장르 또는 같은 감독
+    if base_movie.genre or base_movie.director:
+        conditions = []
+        
+        if base_movie.genre:
+            conditions.append(models.Movie.genre.ilike(f"%{base_movie.genre}%"))
+        
+        if base_movie.director:
+            conditions.append(models.Movie.director.ilike(f"%{base_movie.director}%"))
+        
+        query = query.filter(or_(*conditions))
+    
+    # 평점 높은 순
+    movies = query.order_by(models.Movie.rating.desc()).limit(limit).all()
+    
+    return movies
+
+@router.post("/recommend/ai")
+async def ai_recommend(request: dict):
+    """
+    Claude API + MCP를 사용한 완전한 AI 추천
+    """
+    user_query = request.get("query", "")
+    
+    if not os.getenv("ANTHROPIC_API_KEY"):
+        raise HTTPException(status_code=500, detail="ANTHROPIC_API_KEY not configured")
+    
+    if not os.getenv("TMDB_API_KEY"):
+        raise HTTPException(status_code=500, detail="TMDB_API_KEY not configured")
+    
+    try:
+        # MCP Client 가져오기
+        mcp_client = get_mcp_client()
+        
+        # MCP Tools 목록 가져오기
+        tools = await mcp_client.list_tools()
+        
+        # 1단계: Claude API 호출 (Tool 포함)
+        messages = [{
+            "role": "user",
+            "content": f"""사용자가 다음과 같은 영화를 찾고 있습니다:
+
+"{user_query}"
+
+TMDB API tools를 사용하여 적절한 영화를 5개 찾아서 추천해주세요.
+각 영화에 대해 제목, 개봉일, 평점, 줄거리를 포함하여 추천 이유를 설명해주세요.
+
+사용 가능한 도구:
+- discover_movies: 장르로 영화 찾기 (genre: "스릴러", "드라마", "코미디" 등)
+- search_movies: 영화 제목으로 검색
+- get_movie_details: 영화 상세 정보"""
+        }]
+        
+        response = anthropic_client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=4000,
+            tools=tools,
+            messages=messages
+        )
+        
+        # 2단계: Tool 호출 처리
+        while response.stop_reason == "tool_use":
+            # Tool 호출 결과 수집
+            tool_results = []
+            
+            for content_block in response.content:
+                if content_block.type == "tool_use":
+                    tool_name = content_block.name
+                    tool_input = content_block.input
+                    
+                    # MCP Server에 Tool 호출
+                    result = await mcp_client.call_tool(tool_name, tool_input)
+                    
+                    tool_results.append({
+                        "type": "tool_result",
+                        "tool_use_id": content_block.id,
+                        "content": result
+                    })
+            
+            # Claude에게 Tool 결과 전달
+            messages.append({"role": "assistant", "content": response.content})
+            messages.append({"role": "user", "content": tool_results})
+            
+            # 다시 Claude 호출
+            response = anthropic_client.messages.create(
+                model="claude-sonnet-4-20250514",
+                max_tokens=2000,
+                tools=tools,
+                messages=messages
+            )
+        
+        # 3단계: 최종 응답 추출
+        final_text = ""
+        for content_block in response.content:
+            if hasattr(content_block, "text"):
+                final_text += content_block.text
+        
+        return {
+            "response": final_text,
+            "conversation": messages
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI 추천 오류: {str(e)}")

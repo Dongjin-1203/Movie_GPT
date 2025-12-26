@@ -7,6 +7,10 @@ st.set_page_config(page_title="리뷰 작성", page_icon="✍️", layout="wide"
 
 BASE_URL = os.getenv("BASE_URL", "http://backend:8000")
 
+import sys
+sys.path.append('/app')  # Docker 경로
+
+from components.chatbot import render_chatbot_button
 
 def get_all_movies():
     """전체 영화 목록 가져오기"""
@@ -222,3 +226,5 @@ with st.sidebar:
     
     이 정보는 다른 사용자들에게 영화 선택의 참고 자료가 됩니다!
     """)
+
+render_chatbot_button()
