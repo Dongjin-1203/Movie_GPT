@@ -452,3 +452,10 @@ with st.sidebar:
     - 영화 필터로 영화별 리뷰 확인
     - Expander를 접으면 공간 절약
     """)
+
+import sys
+sys.path.append('/app')  # Docker 경로
+
+from components.chatbot import render_chatbot_button
+
+render_chatbot_button()

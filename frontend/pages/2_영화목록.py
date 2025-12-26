@@ -168,3 +168,10 @@ with st.sidebar:
     - 줄거리 보기를 클릭하면 상세 내용을 볼 수 있습니다
     - 삭제 버튼으로 영화를 제거할 수 있습니다
     """)
+
+import sys
+sys.path.append('/app')  # Docker 경로
+
+from components.chatbot import render_chatbot_button
+
+render_chatbot_button()
