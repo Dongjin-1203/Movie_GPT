@@ -239,3 +239,10 @@ with st.sidebar:
             st.metric("📊 등록된 영화", f"{len(movies)}개")
     except:
         pass
+
+import sys
+sys.path.append('/app')  # Docker 경로
+
+from components.chatbot import render_chatbot_button
+
+render_chatbot_button()

@@ -290,3 +290,10 @@ with st.sidebar:
         if movies:
             avg = sum(m.get('rating', 0) for m in movies) / len(movies)
             st.metric("평균 평점", f"{avg:.2f}")
+
+# ========================================
+# 챗봇 버튼 추가
+# ========================================
+from components.chatbot import render_chatbot_button
+
+render_chatbot_button()

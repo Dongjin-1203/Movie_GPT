@@ -11,3 +11,5 @@ onnxruntime
 scipy
 
 requests
+anthropic
+httpx
